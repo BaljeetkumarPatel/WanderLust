@@ -11,6 +11,11 @@ body {
     flex: 1;
 }
 /* navbar */
+@media (max-width: 768px) {
+    .navbar {
+      flex-direction: column;
+    }
+  }
 .navbar{
     height: 5 rem;
     background-color: white;
@@ -66,7 +71,10 @@ body {
     border: none !important;
     margin-bottom: 2rem;
 }
-
+img {
+    max-width: 100%;
+    height: auto;
+  }
 .card-img-top {
     border-radius: 1rem !important;
     width: 100% !important;
