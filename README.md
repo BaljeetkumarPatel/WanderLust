@@ -117,6 +117,15 @@ UX Enhancements (Connect-Flash) → Delivers instant success/error messages.
 
 
 ## 📌 Future Enhancements
+
+✅ Booking & payment integration.
+
+✅ Review & rating system.
+
+✅ Google Maps for location view.
+
+✅ Wishlist feature.
+
 ## Contributing
 
 Contributions are always welcome!
