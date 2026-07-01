@@ -339,12 +339,6 @@ Notes
 
 BaljeetkumarPatel
 
-- GitHub: https://github.com/BaljeetkumarPatel
-- LinkedIn: https://www.linkedin.com/in/<your-linkedin> (placeholder)
-- Portfolio: https://your-portfolio.example.com (placeholder)
-- Email: your.email@example.com (placeholder)
-- LeetCode: https://leetcode.com/<your-username> (placeholder)
-
 ---
 
 ## Acknowledgements
