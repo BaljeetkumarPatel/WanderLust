@@ -68,53 +68,28 @@ Implemented and visible in the codebase:
 
 ## System Architecture
 
-Mermaid: high-level architecture
+A concise, text-based architecture (GitHub may not render advanced diagrams in all views):
 
-```mermaid
-flowchart LR
-  subgraph Client
-    Browser[Browser (EJS pages, static assets)]
-  end
+- Client: Browser rendering server-side EJS pages and static assets from /public.
+- Server: Express app (app.js) with modular routes and controllers.
+- Authentication: Passport (local) with express-session stored in MongoDB via connect-mongo.
+- Database: MongoDB (Mongoose models: User, Listing, Review).
+- External Services: Cloudinary for image storage; Mapbox SDK integrated for location/geocoding use.
 
-  subgraph Server
-    Express[Express App (app.js)]
-    Routes[Routes (/listings, /reviews, /auth)]
-    Controllers[Controller Logic]
-    Middleware[Auth & Validation Middleware]
-  end
-
-  subgraph Services
-    MongoDB[(MongoDB Atlas)]
-    Cloudinary[(Cloudinary)]
-    Mapbox[(Mapbox / Geocoding)]
-    SessionStore[(Mongo Session Store)]
-  end
-
-  Browser -->|HTTP| Express
-  Express --> Routes
-  Routes --> Controllers
-  Controllers --> MongoDB
-  Controllers --> Cloudinary
-  Controllers --> Mapbox
-  Express --> SessionStore
-  Middleware --> Controllers
-```
+This linear flow summarizes how requests are handled:
+Client → Express Routes → Middleware (auth/validation) → Controllers → MongoDB / Cloudinary / Mapbox → Response
 
 ---
 
 ## User Flow
 
-```mermaid
-flowchart TD
-  Visitor --> Register[Register]
-  Register --> Login[Login]
-  Login --> Browse[Browse Listings]
-  Browse --> View[View Property]
-  View --> CreateListing[Create Listing]
-  CreateListing --> Upload[Upload Images]
-  View --> Review[Review Property]
-  View --> Manage[Manage Listings]
-```
+Primary user flow (text):
+1. Visitor lands on the site and browses listings.
+2. Visitor registers and logs in.
+3. Authenticated user creates a listing (form + image upload).
+4. Images are uploaded to Cloudinary and listing stored in MongoDB with GeoJSON location.
+5. Other users can view the listing and post reviews.
+6. Owners can edit or delete their own listings; reviewers can delete their own reviews.
 
 ---
 
@@ -124,7 +99,7 @@ flowchart TD
   - EJS, ejs-mate (server-rendered UI), CSS (static)
 
 - Backend
-  - Node.js (specified engine in package.json), Express.js
+  - Node.js (engine in package.json), Express.js
 
 - Database
   - MongoDB (via Mongoose)
@@ -177,31 +152,6 @@ flowchart TD
 │  └─ ExpressError.js          # Custom error helper
 └─ views/                      # EJS templates (pages & partials)
 ```
-
----
-
-## Screenshots (placeholders)
-
-- Home
-  ![Home Placeholder](https://placehold.co/900x400?text=WanderLust+-+Home)
-
-- Listings
-  ![Listings Placeholder](https://placehold.co/900x400?text=Listings+-+Browse)
-
-- Property Details
-  ![Property Placeholder](https://placehold.co/900x400?text=Property+-+Details)
-
-- Create Listing
-  ![Create Listing Placeholder](https://placehold.co/900x400?text=Create+Listing)
-
-- Edit Listing
-  ![Edit Listing Placeholder](https://placehold.co/900x400?text=Edit+Listing)
-
-- Reviews
-  ![Reviews Placeholder](https://placehold.co/900x400?text=Reviews)
-
-- Login / Register
-  ![Auth Placeholder](https://placehold.co/900x400?text=Login+%26+Register)
 
 ---
 
@@ -286,83 +236,29 @@ Note: Routes are implemented as Express routers (see routes/*.js). EJS templates
 
 ## Authentication Flow
 
-Mermaid: session-based auth flow
-
-```mermaid
-flowchart LR
-  Browser -->|POST /register| ServerAuth[Express /user routes]
-  ServerAuth -->|create user| MongoDB[(MongoDB)]
-  MongoDB -->|persist hashed password| ServerAuth
-  ServerAuth -->|req.login| SessionStore[(express-session -> connect-mongo)]
-  Browser -->|POST /login| PassportLocal[Passport Local Strategy]
-  PassportLocal -->|authenticate| UserModel((User))
-  PassportLocal -->|serialize user| SessionStore
-  ProtectedRoute[/protected route] -->|checks| isLoggedInMiddleware
-  isLoggedInMiddleware -->|req.isAuthenticated()| allowOrRedirect
-```
-
-- passport-local-mongoose handles password hashing and user serialization helpers.
-- express-session + connect-mongo stores sessions in MongoDB for horizontal scalability.
-- isLoggedIn middleware saves redirect URL and protects private routes.
+Session-based authentication (text):
+- Registration creates a user record via passport-local-mongoose which manages password hashing and salts.
+- On successful register/login, Passport serializes the user into the session stored by connect-mongo.
+- Protected routes use isLoggedIn middleware to enforce authentication and optionally preserve redirect URLs.
 
 ---
 
 ## Database Design
 
-Mermaid ER Diagram (core models)
-
-```mermaid
-erDiagram
-  USER ||--o{ LISTING : owns
-  USER ||--o{ REVIEW : authors
-  LISTING ||--o{ REVIEW : has
-
-  USER {
-    ObjectId _id
-    String username  -- provided by passport-local-mongoose
-    String email
-    String hash      -- managed by passport-local-mongoose
-    String salt
-  }
-
-  LISTING {
-    ObjectId _id
-    String title
-    String description
-    Number price
-    String location
-    String country
-    Object image { url, filename }
-    Object geometry { type: "Point", coordinates: [Number] }
-    ObjectId owner -> USER._id
-    [ObjectId] reviews -> REVIEW._id
-  }
-
-  REVIEW {
-    ObjectId _id
-    String comment
-    Number rating
-    Date createdAt
-    ObjectId author -> USER._id
-  }
-```
+Core models and relationships (text):
+- User: username (managed by passport-local-mongoose), email, hashed password fields (handled by the plugin).
+- Listing: title, description, price, location, country, image {url, filename}, geometry {type: 'Point', coordinates: [lng, lat]}, owner -> User, reviews -> [Review].
+- Review: comment, rating, createdAt, author -> User.
 
 ---
 
 ## Project Workflow
 
-```mermaid
-flowchart LR
-  UserRequest[User Request] --> Router[Express Router]
-  Router --> Middleware[Validation, Auth checks]
-  Middleware --> Controller[Controller / Route Handler]
-  Controller --> Database[(Mongoose -> MongoDB)]
-  Controller --> Cloudinary[(Cloudinary - image storage)]
-  Controller --> Mapbox[(optional geocoding)]
-  Database --> Controller
-  Controller --> Response[HTML / Redirect / JSON]
-  Response --> User
-```
+Request handling (text):
+1. Browser sends HTTP request to Express route.
+2. Route applies middleware (validation, auth checks).
+3. Controller handles business logic, interacts with MongoDB and external services (Cloudinary, Mapbox).
+4. Controller returns HTML response or redirect rendered by EJS.
 
 ---
 
